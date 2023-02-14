@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="vuerlyServer.vuerly.order.repository.OrderDAO">
+
+    <resultMap id="ProductDTO" type="vuerlyServer.vuerly.product.model.ProductDTO">
+        <result column="num" property="num"></result>
+        <result column="product_name" property="product_name"></result>
+        <result column="price" property="price"></result>
+        <result column="sale" property="sale"></result>
+    </resultMap>
+
+    <resultMap id="CartVO" type="vuerlyServer.vuerly.cart.model.CartVO">
+        <result column="idx" property="idx"></result>
+        <result column="count" property="count"></result>
+        <result column="product_num" property="product_num"></result>
+        <result column="member_num" property="member_num"></result>
+    </resultMap>
+
+    <resultMap id="MemberVO" type="vuerlyServer.vuerly.member.model.MemberVO">
+        <result column="name" property="name"></result>
+        <result column="addr" property="addr"></result>
+        <result column="email" property="email"></result>
+        <result column="point" property="point"></result>
+        <result column="member_num" property="member_num"></result>
+    </resultMap>
+
+    <resultMap id="OrderVO" type="vuerlyServer.vuerly.order.model.OrderVO">
+        <result column="num" property="num"></result>
+        <result column="member_num" property="member_num"></result>
+        <collection property="productDTO" resultMap="ProductDTO" />
+        <collection property="cartVO" resultMap="CartVO" />
+        <collection property="memberVO" resultMap="MemberVO" />
+    </resultMap>
+
+    <select id="getOrderSheet" parameterType="int" resultMap="OrderVO">
+        SELECT
+            c.count,
+            c.product_num,
+            p.name AS product_name,
+            p.price, p.sale, m.name,
+            m.addr,
+            m.email,
+            m.point
+        FROM cart c
+        JOIN product p
+        ON c.product_num = p.num
+        JOIN member m
+        ON c.member_num = m.num
+        WHERE m.num = #{memberNum}
+    </select>
+
+    <update id="updatePoint" parameterType="vuerlyServer.vuerly.order.model.OrderDTO">
+        UPDATE member
+        SET point = #{point}
+        WHERE num = #{member_num}
+    </update>
+
+    <insert id="insertPayment" parameterType="vuerlyServer.vuerly.order.model.PaymentVO">
+        INSERT INTO payment(total_price, discount_fee, delivery_fee, final_price, used_point, order_num)
+        VALUES (#{total_price}, #{discount_fee}, #{delivery_fee}, #{final_price}, #{used_point}, #{order_num})
+    </insert>
+
+    <insert id="insertOrder" parameterType="vuerlyServer.vuerly.order.model.OrderDTO">
+        INSERT INTO VUERLY.order(num, status, point, addr, member_num)
+        VALUES (#{order_num}, #{status}, #{point}, #{addr}, #{member_num})
+    </insert>
+
+    <insert id="insertOrderProduct" parameterType="vuerlyServer.vuerly.order.model.OrderProductVO">
+        INSERT INTO VUERLY.order_product(product_num, order_num)
+        VALUES (#{product_num} , #{order_num})
+    </insert>
+
+    <select id="getOrderList" parameterType="vuerlyServer.vuerly.order.model.OrderDTO" resultType="vuerlyServer.vuerly.order.model.OrderDTO">
+        SELECT
+            p.name AS product_name,
+            p.thumbnail,
+            o.num,
+            o.status,
+            o.created_at,
+            a.final_price
+        FROM VUERLY.order o
+        JOIN payment a
+        ON o.num = a.order_num
+        JOIN VUERLY.order_product s
+        ON o.num = s.order_num
+        JOIN product p
+        ON p.num = s.product_num
+        JOIN member m
+        ON m.num = o.member_num
+        WHERE o.member_num = #{member_num}
+        AND o.created_at BETWEEN
+        <choose>
+            <when test="term == 0">DATE_SUB(now(), INTERVAL 3 MONTH)</when>
+            <when test="term == 1">DATE_SUB(now(), INTERVAL 6 MONTH)</when>
+            <when test="term == 2">DATE_SUB(now(), INTERVAL 1 YEAR)</when>
+            <when test="term == 3">DATE_SUB(now(), INTERVAL 3 YEAR)</when>
+        </choose>
+        AND now()
+        ORDER BY o.created_at DESC
+    </select>
+
+</mapper>

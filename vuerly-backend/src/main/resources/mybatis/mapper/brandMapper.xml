@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="vuerlyServer.vuerly.product.repository.BrandDAO">
+
+    <select id="selectBrandInfo" resultType="vuerlyServer.vuerly.product.model.BrandDTO">
+        SELECT num, brand, brand_logo
+        FROM brand
+        ORDER BY
+        num DESC
+    </select>
+
+    <select id="getBrand" resultType="vuerlyServer.vuerly.product.model.BrandDTO">
+        SELECT num, brand, brand_desc
+        FROM brand
+        WHERE num = #{num}
+    </select>
+
+    <select id="getBrandProduct" parameterType="vuerlyServer.vuerly.product.model.BrandDTO" resultType="vuerlyServer.vuerly.product.model.ProductVO">
+        <choose>
+            <when test="category==null or ''.equals(category)">
+                SELECT   p.num, p.name, p.subtitle, p.price AS cost, (p.price-p.sale) AS price, ((p.sale/p.price)*100) AS sale, p.thumbnail, p.readcount, p.category
+                FROM product p
+                JOIN brand d
+                ON p.brand_num = d.num
+                WHERE p.brand_num = #{num}
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">p.readcount DESC</when>
+                    <when test="sort == 'num_desc'">p.num DESC</when>
+                    <when test="sort == 'price_asc'">p.price ASC</when>
+                    <when test="sort == 'price_desc'">p.price DESC</when>
+                </choose>
+            </when>
+            <otherwise>
+                SELECT   p.num, p.name, p.subtitle, p.price AS cost,(p.price-p.sale) AS price,((p.sale/p.price)*100) AS sale, p.thumbnail, p.readcount, p.category
+                FROM product p
+                JOIN brand d
+                ON p.brand_num = d.num
+                WHERE p.brand_num = #{num}
+                AND category=#{category}
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">p.readcount DESC</when>
+                    <when test="sort == 'num_desc'">p.num DESC</when>
+                    <when test="sort == 'price_asc'">p.price ASC</when>
+                    <when test="sort == 'price_desc'">p.price DESC</when>
+                </choose>
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

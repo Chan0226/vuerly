@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="vuerlyServer.vuerly.member.repository.MemberDAO">
+    <!-- 회원가입   -->
+    <insert id="memberJoin" parameterType="vuerlyServer.vuerly.member.model.MemberDTO">
+        INSERT INTO member (id,password,name,email,birth,sex,addr,phone_num,secret_key)
+        values (#{id},#{password},#{name},#{email},#{birth},#{sex},#{addr},#{phoneNum},#{secretKey})
+    </insert>
+
+    <!--  아이디 중복 체크  -->
+    <select id="idCheck" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE id=#{id}
+    </select>
+
+    <!-- 이메일 중복 체크-->
+    <select id="checkEmail" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE email=#{email}
+    </select>
+
+    <!--  로그인  -->
+    <select id="getMember" parameterType="vuerlyServer.vuerly.member.model.MemberDTO" resultType="vuerlyServer.vuerly.member.model.MemberDTO">
+        SELECT num,id,password,secret_key AS secretKey
+        FROM member
+        WHERE id = #{id}
+<!--   비밀번호 비교는 controller에서 처리     -->
+<!--        AND password = #{password}-->
+    </select>
+
+    <!-- 로그인 후, secret_key 변경   -->
+    <update id="updateSecretKey" parameterType="vuerlyServer.vuerly.member.model.MemberDTO">
+        UPDATE member
+        SET secret_key=#{newSecretKey}
+        WHERE id=#{id}
+    </update>
+
+    <!--  수정 이전 회원 정보 호출  -->
+    <select id="getUpdateMemberInfo" parameterType="int" resultType="vuerlyServer.vuerly.member.model.MemberDTO">
+        SELECT id,name,phone_num AS phoneNum,email,sex,addr
+        FROM member
+        WHERE num=#{num}
+    </select>
+
+    <!-- 회원 정보 수정   -->
+    <update id="updateMember" parameterType="vuerlyServer.vuerly.member.model.MemberDTO">
+        UPDATE member
+        SET email=#{email},password=#{password},name=#{name},addr=#{addr},sex=#{sex},birth=#{birth},phone_num=#{phoneNum},updated_at=now()
+        WHERE id=#{id}
+    </update>
+
+    <!-- 회원 탈퇴   -->
+    <delete id="deleteMember" parameterType="int">
+        DELETE
+        FROM member
+        WHERE num=#{num}
+    </delete>
+
+    <!--  이름 체크  -->
+    <select id="checkName" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE name=#{name}
+    </select>
+
+    <!--  아이디 찾기  -->
+    <select id="getId" parameterType="vuerlyServer.vuerly.member.model.MemberDTO" resultType="String">
+        SELECT id
+        FROM member
+        WHERE name=#{name}
+        <if test="email != null and phoneNum == 'null'">
+            AND email=#{email}
+        </if>
+        <if test="phoneNum != 'null'">
+            AND phone_num=#{phoneNum}
+        </if>
+    </select>
+
+    <!--  비밀번호 초기화 전 회원일치 여부 확인(이메일)  -->
+    <select id="checkIdEmail" parameterType="vuerlyServer.vuerly.member.model.MemberDTO" resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE id=#{id}
+        AND email=#{email}
+    </select>
+
+    <!--  비밀번호 초기화 전 회원일치 여부 확인(핸드폰)  -->
+    <select id="checkIdPhone" parameterType="vuerlyServer.vuerly.member.model.MemberDTO" resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE id=#{id}
+        AND phone_num=#{phoneNum}
+    </select>
+
+    <!-- 비밀번호 초기화   -->
+    <update id="updatePwd" parameterType="vuerlyServer.vuerly.member.model.MemberDTO">
+        UPDATE member
+        SET password=#{password}
+        WHERE id=#{id}
+    </update>
+
+    <select id="getMemberInfo" parameterType="int" resultType="vuerlyServer.vuerly.member.model.MemberDTO">
+        SELECT id, name, point
+        FROM member
+        WHERE num=#{num}
+    </select>
+
+    <!--  배송지 변경  -->
+    <update id="updateAddress" parameterType="vuerlyServer.vuerly.member.model.MemberDTO">
+        UPDATE member
+        SET addr=#{addr}
+        WHERE secret_key=#{secretKey}
+    </update>
+
+    <select id="getUserNum" parameterType="String" resultType="int">
+        SELECT num
+        FROM member
+        WHERE secret_key=#{secretKey}
+    </select>
+
+</mapper>

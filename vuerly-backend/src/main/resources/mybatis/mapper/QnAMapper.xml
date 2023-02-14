@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="vuerlyServer.vuerly.qna.repository.QnADAO">
+    <!-- 모든 공지사항 불러오기   -->
+    <select id="getAllAnnouncement" resultType="vuerlyServer.vuerly.qna.model.AnnouncementDTO">
+        SELECT num,title,writer,content,created_at
+        FROM announcement
+        ORDER BY num desc
+    </select>
+
+    <!-- 해당 num 공지사항 불러오기   -->
+    <select id="getAnnouncementByNum" parameterType="int" resultType="vuerlyServer.vuerly.qna.model.AnnouncementDTO">
+        SELECT num,title,writer,content,created_at
+        FROM announcement
+        WHERE num=#{num}
+    </select>
+
+    <!-- 자주묻는 질문 전부 불러오기   -->
+    <select id="getAllFaq" resultType="vuerlyServer.vuerly.qna.model.FaqDTO">
+        SELECT
+        f.num,
+        f.title,
+        f.answer,
+        t.category
+        FROM faq f
+        JOIN faqtype t
+        ON f.category = t.num
+        ORDER BY num desc
+    </select>
+
+    <!-- 회원의 1:1문의 내역 불러오기   -->
+    <select id="getMemberInquiry" parameterType="int" resultType="vuerlyServer.vuerly.qna.model.QnADTO">
+        SELECT
+        q.num,
+        q.title,
+        q.content,
+        q.created_at,
+        q.status,
+        t.type as qnaType
+        FROM qna q
+        JOIN qnatype t
+        ON q.qnatype_num = t.num
+        WHERE member_num = #{member_num}
+    </select>
+
+    <!-- 1:1문의 작성하기 -->
+    <insert id="insertInquiry" parameterType="vuerlyServer.vuerly.qna.model.QnAVO">
+        INSERT INTO qna(title,content,member_num,qnatype_num)
+        VALUES (#{title},#{content},#{member_num},#{qnatype_num})
+    </insert>
+
+    <!--  1:1문의 수정하기  -->
+    <update id="updateInquiry" parameterType="vuerlyServer.vuerly.member.model.MemberDTO">
+        UPDATE qna
+        SET title=#{title},content=#{content},qnatype_num=#{qnatype_num}
+        WHERE num=#{num}
+    </update>
+
+    <!-- 수정할 1:1문의 정보 불러오기   -->
+    <select id="getUpdateInquiryInfo" parameterType="int" resultType="vuerlyServer.vuerly.qna.model.QnAVO">
+        SELECT num,title,content,qnatype_num
+        FROM qna
+        WHERE num=#{num}
+    </select>
+
+    <!-- 1:1문의 삭제하기   -->
+    <delete id="deleteInquiry" parameterType="int">
+        DELETE
+        FROM qna
+        WHERE num=#{num}
+    </delete>
+</mapper>

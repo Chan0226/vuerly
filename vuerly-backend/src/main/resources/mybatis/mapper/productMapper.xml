@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="vuerlyServer.vuerly.product.repository.ProductDAO">
+    <select id="getAllProduct" parameterType="vuerlyServer.vuerly.product.model.ProductDTO" resultType="vuerlyServer.vuerly.product.model.ProductVO">
+       <choose>
+           <when test="category==null or ''.equals(category)">
+               SELECT   num,name,subtitle,price AS cost,(price-sale) AS price,((sale/price)*100) AS sale,thumbnail,readcount,category
+               FROM product
+               ORDER BY
+               <choose>
+                   <when test="sort == 'readcount_desc'">readcount DESC</when>
+                   <when test="sort == 'num_desc'">num DESC</when>
+                   <when test="sort == 'price_asc'">price ASC</when>
+                   <when test="sort == 'price_desc'">price DESC</when>
+               </choose>
+           </when>
+            <otherwise>
+                SELECT   num,name,subtitle,price AS cost,(price-sale) AS price,((sale/price)*100) AS sale,thumbnail,readcount,category
+                FROM product
+                WHERE category=#{category}
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">readcount DESC</when>
+                    <when test="sort == 'num_desc'">num DESC</when>
+                    <when test="sort == 'price_asc'">price ASC</when>
+                    <when test="sort == 'price_desc'">price DESC</when>
+                </choose>
+            </otherwise>
+       </choose>
+    </select>
+    <!-- 카테고리 페이지 -->
+    <select id="getCateProduct" parameterType="vuerlyServer.vuerly.product.model.ProductDTO" resultType="vuerlyServer.vuerly.product.model.ProductVO">
+        <choose>
+            <when test="brand_num==null or brand_num==0">
+                SELECT   num,name,subtitle,price AS cost,(price-sale) AS price,((sale/price)*100) AS sale,thumbnail,readcount,category
+                FROM product
+                WHERE category=#{category}
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">readcount DESC</when>
+                    <when test="sort == 'num_desc'">num DESC</when>
+                    <when test="sort == 'price_asc'">price ASC</when>
+                    <when test="sort == 'price_desc'">price DESC</when>
+                </choose>
+            </when>
+            <otherwise>
+                SELECT   num,name,subtitle,price AS cost,(price-sale) AS price,((sale/price)*100) AS sale,thumbnail,readcount,category
+                FROM product
+                WHERE category=#{category}
+                AND brand_num=#{brand_num}
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">readcount DESC</when>
+                    <when test="sort == 'num_desc'">num DESC</when>
+                    <when test="sort == 'price_asc'">price ASC</when>
+                    <when test="sort == 'price_desc'">price DESC</when>
+                </choose>
+            </otherwise>
+        </choose>
+    </select>
+    <!-- 특가/혜택 할인율순 12개 -->
+    <select id="getEventProduct" parameterType="vuerlyServer.vuerly.product.model.ProductDTO" resultType="vuerlyServer.vuerly.product.model.ProductVO">
+        <choose>
+            <when test="category==null or ''.equals(category)">
+                SELECT   num,name,subtitle,price AS cost,(price-sale) AS price,((sale/price)*100) AS sale,thumbnail,readcount,category
+                FROM product
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">readcount DESC</when>
+                    <when test="sort == 'price_asc'">price ASC</when>
+                    <when test="sort == 'price_desc'">price DESC</when>
+                    <when test="sort == 'sale_desc'">sale DESC</when>
+                </choose>
+                LIMIT 12
+            </when>
+            <otherwise>
+                SELECT   num,name,subtitle,price AS cost,(price-sale) AS price,((sale/price)*100) AS sale,thumbnail,readcount,category
+                FROM product
+                WHERE category=#{category}
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">readcount DESC</when>
+                    <when test="sort == 'price_asc'">price ASC</when>
+                    <when test="sort == 'price_desc'">price DESC</when>
+                    <when test="sort == 'sale_desc'">sale DESC</when>
+                </choose>
+                LIMIT 12
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getProductDetail" parameterType="int" resultType="vuerlyServer.vuerly.product.model.ProductVO">
+        SELECT
+            num,
+            name,
+            (price-sale) AS price,
+            ((sale/price)*100) AS sale,
+            thumbnail,
+            desc_image,
+            detail_image
+        FROM product
+        WHERE num = #{num}
+    </select>
+
+    <!--  통합검색  -->
+    <select id="unifiedSearch" parameterType="vuerlyServer.vuerly.product.model.ProductDTO" resultType="vuerlyServer.vuerly.product.model.ProductDTO">
+        <choose>
+            <when test="category==null or ''.equals(category)">
+                SELECT  p.num,p.name AS product_name,p.subtitle,p.price,p.sale,p.thumbnail,p.readcount,p.category
+                FROM product p
+                JOIN brand b
+                ON p.brand_num = b.num
+                WHERE p.name LIKE concat('%',#{search},'%')
+                OR b.brand LIKE concat('%',#{search},'%')
+                OR category LIKE concat('%',#{search},'%')
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">readcount DESC</when>
+                    <when test="sort == 'num_desc'">num DESC</when>
+                    <when test="sort == 'price_asc'">price ASC</when>
+                    <when test="sort == 'price_desc'">price DESC</when>
+                </choose>
+            </when>
+            <otherwise>
+                SELECT  p.num,p.name AS product_name,p.subtitle,p.price,p.sale,p.thumbnail,p.readcount,p.category
+                FROM product p
+                JOIN brand b
+                ON p.brand_num = b.num
+                WHERE (p.name LIKE concat('%',#{search},'%')
+                OR b.brand LIKE concat('%',#{search},'%')
+                OR p.category LIKE concat('%',#{search},'%'))
+                AND p.category=#{category}
+                ORDER BY
+                <choose>
+                    <when test="sort == 'readcount_desc'">readcount DESC</when>
+                    <when test="sort == 'num_desc'">num DESC</when>
+                    <when test="sort == 'price_asc'">price ASC</when>
+                    <when test="sort == 'price_desc'">price DESC</when>
+                </choose>
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="addReadcount" parameterType="int">
+        UPDATE product
+        SET readcount = readcount + 1
+        WHERE num = #{num}
+    </update>
+</mapper>
