@@ -1,7 +1,8 @@
 # Vuerly
-vue.js 마켓컬리 프로젝트
+vue.js(nuxt) 마켓컬리 프로젝트
 
 ### 사용기술
+Spring boot
 Swagger-ui
 mybatis
 Spring Security
